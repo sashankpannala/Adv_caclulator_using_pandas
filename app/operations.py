@@ -1,7 +1,3 @@
-########################
-# Operation Classes    #
-########################
-
 from abc import ABC, abstractmethod
 from decimal import Decimal
 from typing import Dict
@@ -13,32 +9,11 @@ class Operation(ABC):
     
     @abstractmethod
     def execute(self, a: Decimal, b: Decimal) -> Decimal:
-        """
-        Execute the operation.
-        
-        Args:
-            a: First operand
-            b: Second operand
-            
-        Returns:
-            Decimal: Result of operation
-            
-        Raises:
-            OperationError: If operation fails
-        """
+        """Execute the operation."""
         pass
 
     def validate_operands(self, a: Decimal, b: Decimal) -> None:
-        """
-        Validate operands before execution.
-        
-        Args:
-            a: First operand
-            b: Second operand
-            
-        Raises:
-            ValidationError: If operands are invalid
-        """
+        """Validate operands before execution."""
         pass
 
     def __str__(self) -> str:
@@ -74,7 +49,6 @@ class Division(Operation):
     
     def validate_operands(self, a: Decimal, b: Decimal) -> None:
         """Validate operands, checking for division by zero."""
-        super().validate_operands(a, b)
         if b == 0:
             raise ValidationError("Division by zero is not allowed")
 
@@ -88,7 +62,6 @@ class Power(Operation):
     
     def validate_operands(self, a: Decimal, b: Decimal) -> None:
         """Validate operands for power operation."""
-        super().validate_operands(a, b)
         if b < 0:
             raise ValidationError("Negative exponents not supported")
 
@@ -102,7 +75,6 @@ class Root(Operation):
     
     def validate_operands(self, a: Decimal, b: Decimal) -> None:
         """Validate operands for root operation."""
-        super().validate_operands(a, b)
         if a < 0:
             raise ValidationError("Cannot calculate root of negative number")
         if b == 0:
@@ -111,7 +83,7 @@ class Root(Operation):
     def execute(self, a: Decimal, b: Decimal) -> Decimal:
         """Calculate the b-th root of a."""
         self.validate_operands(a, b)
-        return Decimal(pow(float(a), 1/float(b)))
+        return Decimal(pow(float(a), 1 / float(b)))
 
 class Average(Operation):
     """Average operation implementation."""
@@ -126,13 +98,10 @@ class Mod(Operation):
 
     def execute(self, a: Decimal, b: Decimal) -> Decimal:
         """Calculate the modulus of a and b."""
-        self.validate_operands(a, b)
+        if b == 0:
+            raise ValidationError("Modulus by zero is not allowed")
         return a % b
 
-
-########################
-# Factory Pattern      #
-########################
 
 class OperationFactory:
     """Factory class for creating operation instances."""
@@ -144,19 +113,13 @@ class OperationFactory:
         'divide': Division,
         'power': Power,
         'root': Root,
-        'mod': Mod,  # Corrected here: only the class, no instantiation
-        'average': Average  # Corrected here as well
+        'mod': Mod,
+        'average': Average
     }
 
     @classmethod
     def register_operation(cls, name: str, operation_class: type) -> None:
-        """
-        Register a new operation type.
-        
-        Args:
-            name: Operation identifier
-            operation_class: Operation class to register
-        """
+        """Register a new operation type."""
         if not issubclass(operation_class, Operation):
             raise TypeError("Operation class must inherit from Operation")
         cls._operations[name.lower()] = operation_class
