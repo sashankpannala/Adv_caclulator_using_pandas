@@ -1,7 +1,3 @@
-########################
-# Input Validation     #
-########################
-
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any
@@ -10,29 +6,25 @@ from app.exceptions import ValidationError
 
 @dataclass
 class InputValidator:
-    """Validates and sanitizes calculator inputs."""
-    
     @staticmethod
     def validate_number(value: Any, config: CalculatorConfig) -> Decimal:
-        """
-        Validate and convert input to Decimal.
-        
-        Args:
-            value: Input value to validate
-            config: Calculator configuration
-            
-        Returns:
-            Decimal: Validated and converted number
-            
-        Raises:
-            ValidationError: If input is invalid
-        """
+        """Validate and convert a value to Decimal within configuration limits."""
+        number = InputValidator._convert_to_decimal(value)
+        InputValidator._check_within_limits(number, config.max_input_value)
+        return number.normalize()
+
+    @staticmethod
+    def _convert_to_decimal(value: Any) -> Decimal:
+        """Convert a value to Decimal, handling any invalid input format."""
         try:
             if isinstance(value, str):
                 value = value.strip()
-            number = Decimal(str(value))
-            if abs(number) > config.max_input_value:
-                raise ValidationError(f"Value exceeds maximum allowed: {config.max_input_value}")
-            return number.normalize()
+            return Decimal(str(value))
         except InvalidOperation as e:
             raise ValidationError(f"Invalid number format: {value}") from e
+
+    @staticmethod
+    def _check_within_limits(number: Decimal, max_value: Decimal) -> None:
+        """Raise a ValidationError if the number exceeds the allowed maximum."""
+        if abs(number) > max_value:
+            raise ValidationError(f"Value exceeds maximum allowed: {max_value}")
